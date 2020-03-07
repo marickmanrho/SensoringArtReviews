@@ -15,6 +15,7 @@ def aclImdb_read():
 def aclImdb_read_single(path,id):
     import os
 
+    # Find filename and extract rating
     for file in os.listdir(path):
         if file.endswith(".txt"):
             if (file.find(str(id)+"_") != -1):
@@ -24,8 +25,14 @@ def aclImdb_read_single(path,id):
                     rating = partitioned[1].split(".")[0]
                     break
 
+    # Read filename
     with open(os.path.join(path,filename)) as file:
         text = file.read()
+
+    # strip HTML tags
+    from bs4 import BeautifulSoup
+    soup = BeautifulSoup(text, features="html.parser")
+    text = soup.get_text()
 
     return text, rating
 
@@ -33,8 +40,14 @@ class aclImdb_single():
     def __init__(self,path,id):
         [self.text, self.rating] = aclImdb_read_single(path,id)
 
+    def sent(self):
+        from nltk.tokenize import sent_tokenize
+        return sent_tokenize(self.text)
+
 if __name__ == '__main__':
     path = "D://databases/aclImdb/train/neg"
     id = 3
     single = aclImdb_single(path,id)
     print(single.__dict__)
+
+    print(single.sent())
