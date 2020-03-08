@@ -1,17 +1,32 @@
 def av_rating_per_word():
     import numpy as np
-
     import pandas as pd
-    word_rating = pd.DataFrame(data={'word':[],'rating_sum':[],'count':[]})
 
-    print(word_rating)
-
-    from src.mine.aclImdb.aclImdb_parse import aclImdb_single
     path = "D://databases/aclImdb/train/neg"
 
     # Read negative reviews
     Nnegrev = 100
-    for id in range(Nnegrev):
+
+    word_rating = read_range(path,0,Nnegrev)
+    #print(word_rating.sort_values(by='rating_sum', ascending=False))
+
+    from data.sensory_words.sensory_words import sensory_words_class
+    sw = sensory_words_class()
+
+    print(word_rating.isin(sw.touch).sort_values(by='word'))
+    exit()
+    print(sw.sight)
+
+def read_range(path,min,max):
+    import pandas as pd
+    import numpy as np
+    from src.mine.aclImdb.aclImdb_parse import aclImdb_single
+
+    wr = pd.DataFrame(data={'word':[],'rating_sum':[],'count':[]})
+    word_rating = pd.DataFrame(data={'word':[],'rating_sum':[],'count':[]})
+
+    for id in range(min,max):
+
         # read review
         rev = aclImdb_single(path,id)
 
@@ -24,16 +39,17 @@ def av_rating_per_word():
                                 'count':np.ones(len(words))})
 
         # append words
-        word_rating = word_rating.append(data,ignore_index=True)
+        wr = wr.append(data,ignore_index=True)
+
+        if (np.mod(id,10)==0 or id==max-1):
+            q = wr.groupby(['word']).agg({'rating_sum':'sum','count':'sum'}).reset_index()
+            word_rating = pd.concat([word_rating,q])
+            wr = pd.DataFrame(data={'word':[],'rating_sum':[],'count':[]})
 
     # sum words when equal
-    word_rating = word_rating.groupby(['word']).agg({'rating_sum':'sum','count':'sum'})
+    word_rating = word_rating.groupby(['word']).agg({'rating_sum':'sum','count':'sum'}).reset_index()
 
-    print(word_rating.sort_values(by=['count'],ascending=False))
-    print(word_rating.sort_values(by=['rating_sum'],ascending=False))
-    # Read positive reviews
-
-    pass
+    return word_rating
 
 # Ugly hack to allow absolute import from the root folder
 # whatever its name is. Please forgive the heresy.
