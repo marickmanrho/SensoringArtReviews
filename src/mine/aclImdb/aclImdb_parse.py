@@ -22,7 +22,7 @@ def aclImdb_read_single(path,id):
                 partitioned = file.split("_")
                 if partitioned[0] == str(id):
                     filename = file
-                    rating = partitioned[1].split(".")[0]
+                    rating = float(partitioned[1].split(".")[0])
                     break
 
     # Read filename
@@ -44,6 +44,23 @@ class aclImdb_single():
         from nltk.tokenize import sent_tokenize
         return sent_tokenize(self.text)
 
+    def words(self):
+        from nltk.tokenize import word_tokenize
+        return word_tokenize(self.text)
+
+    def words_minimal(self):
+        from nltk.corpus import stopwords
+        from nltk.tokenize import word_tokenize
+
+        wordlist = self.words()
+        text_nopunct = [word.lower() for word in wordlist if word.isalpha()]
+        text_nostop = [word for word in text_nopunct if word not in stopwords.words('english')]
+
+        from nltk.stem import PorterStemmer
+        stemming = PorterStemmer()
+        text_stemmed = [stemming.stem(word) for word in text_nostop]
+        return text_stemmed
+
 if __name__ == '__main__':
     path = "D://databases/aclImdb/train/neg"
     id = 3
@@ -51,3 +68,7 @@ if __name__ == '__main__':
     print(single.__dict__)
 
     print(single.sent())
+
+    print(single.words())
+
+    print(single.words_nostop())
